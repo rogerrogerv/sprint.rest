@@ -1,5 +1,8 @@
 const pokeData = require("./data");
 const express = require("express");
+const helper = require("./helpers");
+const capitalize = helper.capitalize;
+const indexOf = helper.indexOf;
 
 const setupExpressServer = () => {
   /**
@@ -12,12 +15,10 @@ const setupExpressServer = () => {
   app.get("/api/pokemon", (request, response) => {
     let pokemonResponse = [];
     const limit = request.query.limit;
-    if (request.query.limit === undefined) {
+    if (limit === undefined) {
       pokemonResponse = pokeData.pokemon;
     }
-
     pokemonResponse = pokeData.pokemon.slice(0, limit); // slice instead
-
     response.send(pokemonResponse);
   });
 
@@ -31,12 +32,8 @@ const setupExpressServer = () => {
     let pokemonResponse = "";
     // For :name params
     if (!parseInt(request.params.idOrName)) {
-      let pokeName = request.params.idOrName.toLowerCase();
-      pokeName = pokeName.charAt(0).toUpperCase() + pokeName.slice(1);
-      for (const pokemon in pokeData.pokemon) {
-        if (pokeData.pokemon[pokemon].name === pokeName)
-          pokemonResponse = pokeData.pokemon[pokemon];
-      }
+      const pokeName = capitalize(request.params.idOrName);
+      pokemonResponse = pokeData.pokemon[indexOf(pokeName)];
     } else {
       const pokeID = parseInt(request.params.idOrName, 10) - 1;
       pokemonResponse = pokeData.pokemon[pokeID];
@@ -66,8 +63,7 @@ const setupExpressServer = () => {
     let pokemonResponse = "";
     // For :name params
     if (!parseInt(request.params.idOrName)) {
-      let pokeName = request.params.idOrName.toLowerCase();
-      pokeName = pokeName.charAt(0).toUpperCase() + pokeName.slice(1);
+      const pokeName = capitalize(request.params.idOrName);
       for (const pokemon in pokeData.pokemon) {
         if (pokeData.pokemon[pokemon].name === pokeName) {
           // Update pokemon's properties
@@ -89,28 +85,13 @@ const setupExpressServer = () => {
     response.send(pokemonResponse);
   });
 
-  // TODO edit algorithm
   app.delete("/api/pokemon/:idOrName", (request, response) => {
     if (!parseInt(request.params.idOrName)) {
-      console.log("** IS ARRAY **", Array.isArray(pokeData.pokemon));
-      let pokeName = request.params.idOrName.toLowerCase();
-      pokeName = pokeName.charAt(0).toUpperCase() + pokeName.slice(1);
-      for (const pokemon of pokeData.pokemon) {
-        console.log("** SEARCHING POKEMON **", pokemon);
-        if (pokeData.pokemon[pokemon].name === pokeName) {
-          // Delete pokemon
-          const targetIndex = pokeData.pokemon.indexOf(pokemon);
-          console.log("** DELETING POKEMON **", pokeData.pokemon[targetIndex]);
-          pokeData.splice(targetIndex, 1);
-        }
-      }
+      const pokeName = capitalize(request.params.idOrName);
+      pokeData.pokemon.splice(indexOf(pokeName), 1);
     } else {
       const pokeID = parseInt(request.params.idOrName, 10) - 1;
-      // Delete pokemon
-      for (const prop in request.body) {
-        pokeData.pokemon[pokeID][prop] = request.body[prop];
-      }
-      pokemonResponse = pokeData.pokemon[pokeID];
+      pokeData.pokemon.splice(pokeID, 1);
     }
     response.status(200).send();
   });
