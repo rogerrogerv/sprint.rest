@@ -59,14 +59,68 @@ describe("Pokemon API Server", () => {
 
     describe("GET /api/pokemon/:name", () => {
       it("should return the Pokemon with given name", async () => {
-        const res = await request.get("/api/pokemon/Geodude");
+        const res = await request.get("/api/pokemon/Bulbasaur");
         res.should.be.json;
-        JSON.parse(res.text).name.should.equal("Geodude");
+        JSON.parse(res.text).name.should.equal("Bulbasaur");
       });
       it("should be case-insensitive", async () => {
-        const res = await request.get("/api/pokemon/PIKACHU");
+        const res = await request.get("/api/pokemon/BULBASAUR");
         res.should.be.json;
-        JSON.parse(res.text).name.should.equal("Pikachu");
+        JSON.parse(res.text).name.should.equal("Bulbasaur");
+      });
+    });
+
+    describe("PATCH /api/pokemon/:idOrName", () => {
+      it("should allow you to make partial modifications to a Pokemon using NAME", async () => {
+        const res = await request
+          .patch("/api/pokemon/Bulbasaur")
+          .send({ name: "Babysaur" });
+        res.should.be.json;
+        JSON.parse(res.text).name.should.equal("Babysaur");
+      });
+
+      describe("PATCH /api/pokemon/:idOrName", () => {
+        it("should allow you to make partial modifications to a Pokemon using ID", async () => {
+          const res = await request
+            .patch("/api/pokemon/001")
+            .send({ name: "Babysaur" });
+          res.should.be.json;
+          JSON.parse(res.text).name.should.equal("Babysaur");
+        });
+      });
+    });
+
+    describe("DELETE /api/pokemon/:idOrName", () => {
+      it("It should delete the given Pokemon by NAME", async () => {
+        const res = await request.delete("/api/pokemon/Bulbasaur");
+        console.log(res.statusCode, "LISTENING ------------- ");
+        res.should.have.status(200);
+        const res2 = await request.get("/api/pokemon/Bulbasaur");
+        res2.should.be.json;
+        res2.text.should.equal(undefined);
+      });
+    });
+    xdescribe("DELETE /api/pokemon/:idOrName", () => {
+      it("It should delete the given Pokemon by ID", async () => {
+        const res = await request.delete("/api/pokemon/001");
+        res.should.have.status(200);
+        const res2 = await request.get("/api/pokemon/001");
+        res2.should.be.json;
+        res2.text.should.equal(undefined);
+      });
+    });
+
+    xdescribe("GET /api/pokemon/:idOrName/evolutions", () => {
+      it("It should return the evolutions a Pokemon has", async () => {
+        const res = await request.get("/api/pokemon/staryu/evolutions");
+        res.should.be.json;
+        JSON.parse(res.text).should.deep.equal([{ id: 121, name: "Starmie" }]);
+      });
+
+      it("It should return an empty array if the Pokemon has no evolutions", async () => {
+        const res = await request.get("/api/pokemon/Raichu/evolutions");
+        res.should.be.json;
+        JSON.parse(res.text).should.deep.equal([]);
       });
     });
   });
